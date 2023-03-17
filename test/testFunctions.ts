@@ -1,11 +1,10 @@
 import request from 'supertest';
-import expect from 'expect';
-import {User} from '../src/interfaces/User';
+import {User} from '../src/types/DBTypes';
 
-interface UserWithToken {
+type UserWithToken = {
   user: User;
   token: string;
-}
+};
 
 const getNotFound = (url: string | Function) => {
   return new Promise((resolve, reject) => {

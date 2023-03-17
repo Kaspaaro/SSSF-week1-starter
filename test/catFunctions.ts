@@ -1,18 +1,12 @@
+/* eslint-disable node/no-unpublished-import */
 import request from 'supertest';
-import expect from 'expect';
-import {User} from '../src/interfaces/User';
-import {Cat} from '../src/interfaces/Cat';
-import MessageResponse from '../src/interfaces/MessageResponse';
-
-interface UserWithToken {
-  user: User;
-  token: string;
-}
+import {Cat} from '../src/types/DBTypes';
+import {MessageResponse, UploadResponse} from '../src/types/MessageTypes';
 
 const getCat = (url: string | Function): Promise<Cat[]> => {
   return new Promise((resolve, reject) => {
     request(url)
-      .get('/api/v1/cat')
+      .get('/api/v1/cats')
       .expect(200, (err, response) => {
         if (err) {
           reject(err);
@@ -34,7 +28,7 @@ const getCat = (url: string | Function): Promise<Cat[]> => {
 const getSingleCat = (url: string | Function, id: number): Promise<Cat> => {
   return new Promise((resolve, reject) => {
     request(url)
-      .get('/api/v1/cat/' + id)
+      .get('/api/v1/cats/' + id)
       .expect(200, (err, response) => {
         if (err) {
           reject(err);
@@ -56,10 +50,10 @@ const postCat = (
   token: string,
   owner: number,
   pic: string
-): Promise<MessageResponse> => {
+): Promise<UploadResponse> => {
   return new Promise((resolve, reject) => {
     request(url)
-      .post('/api/v1/cat/')
+      .post('/api/v1/cats/')
       .set('Content-type', 'form-data')
       .set('Authorization', 'Bearer ' + token)
       .attach('cat', 'test/' + pic)
@@ -72,7 +66,6 @@ const postCat = (
           reject(err);
         } else {
           const cat: MessageResponse = response.body;
-          expect(cat.id).toBeGreaterThan(0);
           expect(cat.message).not.toBe('');
           resolve(response.body);
         }
@@ -88,7 +81,7 @@ const adminPutCat = (
 ): Promise<MessageResponse> => {
   return new Promise((resolve, reject) => {
     request(url)
-      .put('/api/v1/cat/' + id)
+      .put('/api/v1/cats/' + id)
       .set('Content-type', 'application/json')
       .set('Authorization', 'Bearer ' + token)
       .send({
@@ -99,7 +92,6 @@ const adminPutCat = (
           reject(err);
         } else {
           const cat: MessageResponse = response.body;
-          expect(cat.id).toBeGreaterThan(0);
           expect(cat.message).not.toBe('');
           resolve(cat);
         }
@@ -115,7 +107,7 @@ const userPutCat = (
 ): Promise<MessageResponse> => {
   return new Promise((resolve, reject) => {
     request(url)
-      .put('/api/v1/cat/' + id)
+      .put('/api/v1/cats/' + id)
       .set('Content-type', 'application/json')
       .set('Authorization', 'Bearer ' + token)
       .send({
@@ -126,7 +118,6 @@ const userPutCat = (
           reject(err);
         } else {
           const cat: MessageResponse = response.body;
-          expect(cat.id).toBeGreaterThan(0);
           expect(cat.message).not.toBe('');
           resolve(cat);
         }
@@ -142,7 +133,7 @@ const adminDeleteCat = (
 ): Promise<MessageResponse> => {
   return new Promise((resolve, reject) => {
     request(url)
-      .delete('/api/v1/cat/' + id)
+      .delete('/api/v1/cats/' + id)
       .set('Content-type', 'application/json')
       .set('Authorization', 'Bearer ' + token)
       .expect(200, (err, response) => {
@@ -150,7 +141,6 @@ const adminDeleteCat = (
           reject(err);
         } else {
           const cat: MessageResponse = response.body;
-          expect(cat.id).toBeGreaterThan(0);
           expect(cat.message).not.toBe('');
           resolve(cat);
         }
@@ -166,7 +156,7 @@ const userDeleteCat = (
 ): Promise<MessageResponse> => {
   return new Promise((resolve, reject) => {
     request(url)
-      .delete('/api/v1/cat/' + id)
+      .delete('/api/v1/cats/' + id)
       .set('Content-type', 'application/json')
       .set('Authorization', 'Bearer ' + token)
       .expect(200, (err, response) => {
@@ -174,7 +164,6 @@ const userDeleteCat = (
           reject(err);
         } else {
           const cat: MessageResponse = response.body;
-          expect(cat.id).toBeGreaterThan(0);
           expect(cat.message).not.toBe('');
           resolve(cat);
         }

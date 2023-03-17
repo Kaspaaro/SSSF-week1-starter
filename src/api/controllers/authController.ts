@@ -2,7 +2,7 @@ import {Request, Response, NextFunction} from 'express';
 import jwt from 'jsonwebtoken';
 import passport from '../../passport';
 import CustomError from '../../classes/CustomError';
-import {User} from '../../interfaces/User';
+import {User} from '../../types/DBTypes';
 
 const login = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate(

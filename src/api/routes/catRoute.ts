@@ -5,12 +5,12 @@ import {
   catListGet,
   catPost,
   catPut,
-  catGetByUser,
 } from '../controllers/catController';
 import multer, {FileFilterCallback} from 'multer';
 import {body, param} from 'express-validator';
 import passport from '../../passport';
 import {getCoordinates, makeThumbnail} from '../../middlewares';
+
 
 const fileFilter = (
   request: Request,
@@ -53,9 +53,5 @@ router
     param('id').isNumeric(),
     catDelete
   );
-
-router
-  .route('/user')
-  .get(passport.authenticate('jwt', {session: false}), catGetByUser);
 
 export default router;

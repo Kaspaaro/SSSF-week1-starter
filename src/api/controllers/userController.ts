@@ -8,10 +8,16 @@ import {
 import {Request, Response, NextFunction} from 'express';
 import CustomError from '../../classes/CustomError';
 import bcrypt from 'bcryptjs';
-import {User} from '../../interfaces/User';
+import {User} from '../../types/DBTypes';
+import {MessageResponse} from '../../types/MessageTypes';
+import {validationResult} from 'express-validator';
 const salt = bcrypt.genSaltSync(12);
 
-const userListGet = async (req: Request, res: Response, next: NextFunction) => {
+const userListGet = async (
+  _req: Request,
+  res: Response<User[]>,
+  next: NextFunction
+) => {
   try {
     const users = await getAllUsers();
     res.json(users);
@@ -22,40 +28,79 @@ const userListGet = async (req: Request, res: Response, next: NextFunction) => {
 
 const userGet = async (
   req: Request<{id: string}, {}, {}>,
-  res: Response,
+  res: Response<User>,
   next: NextFunction
 ) => {
   try {
-    const user = await getUser(req.params.id);
+    const id = Number(req.params.id);
+    const user = await getUser(id);
     res.json(user);
   } catch (error) {
     next(error);
   }
 };
-
-// TDOD: create userPost function to add new user
+// TODO: create userPost function to add new user
 // userPost should use addUser function from userModel
 // userPost should use validationResult to validate req.body
+// - user_name should be at least 3 characters long
+// - email should be a valid email
+// - password should be at least 5 characters long
 // userPost should use bcrypt to hash password
+const userPost = async (
+  req: Request<{}, {}, User>,
+  res: Response<MessageResponse>,
+  next: NextFunction
+) => {
+  const errors = validationResult(req.body);
+  if (!errors.isEmpty()) {
+    const messages: string = errors
+      .array()
+      .map((error) => `${error.msg}: ${error.param}`)
+      .join(', ');
+    console.log('user_post validation', messages);
+    next(new CustomError(messages, 400));
+    return;
+  }
+
+  try {
+    const user = req.body;
+    console.log('WHAT IS WRONG: ' + user.password);
+    user.password = bcrypt.hashSync(user.password, salt);
+
+    const result = await addUser(user);
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
 const userPut = async (
   req: Request<{id: number}, {}, User>,
-  res: Response,
+  res: Response<MessageResponse>,
   next: NextFunction
 ) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const messages: string = errors
+      .array()
+      .map((error) => `${error.msg}: ${error.param}`)
+      .join(', ');
+    console.log('user_put validation', messages);
+    next(new CustomError(messages, 400));
+    return;
+  }
+
   try {
-    if ((req.user as User).role !== 'admin') {
+    const user = req.body;
+
+    if (user && user.role !== 'admin') {
       throw new CustomError('Admin only', 403);
     }
 
-    const user = req.body;
-
     const result = await updateUser(user, req.params.id);
-    if (result) {
-      res.json({
-        message: 'user modified',
-      });
-    }
+
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -65,23 +110,89 @@ const userPut = async (
 // userPutCurrent should use updateUser function from userModel
 // userPutCurrent should use validationResult to validate req.body
 
+const userPutCurrent = async (
+  req: Request<{}, {}, User>,
+  res: Response<MessageResponse>,
+  next: NextFunction
+) => {
+  const errors = validationResult(req.body);
+  if (!errors.isEmpty()) {
+    const messages: string = errors
+      .array()
+      .map((error) => `${error.msg}: ${error.param}`)
+      .join(', ');
+    next(new CustomError(messages, 400));
+    return;
+  }
+  const user = req.user;
+  if (!user) {
+    throw new CustomError('No user', 400);
+  }
+  try {
+    const result = await updateUser(req.body, (req.user as User).user_id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // TODO: create userDelete function for admin to delete user by id
 // userDelete should use deleteUser function from userModel
 // userDelete should use validationResult to validate req.params.id
 // userDelete should use req.user to get role
 
+const userDelete = async (
+  req: Request<{id: number}, {}, User>,
+  res: Response<MessageResponse>,
+  next: NextFunction
+) => {
+  const errors = validationResult(new Request(String(req.params.id)));
+  if (!errors.isEmpty()) {
+    const messages: string = errors
+      .array()
+      .map((error) => `${error.msg}: ${error.param}`)
+      .join(', ');
+    console.log('user_delete validation', messages);
+    next(new CustomError(messages, 400));
+    return;
+  }
+
+  try {
+    if ((req.user as User).role !== 'admin') {
+      throw new CustomError('Admin only', 403);
+    }
+
+    const result = await deleteUser((req.user as User).user_id);
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const userDeleteCurrent = async (
-  req: Request,
-  res: Response,
+  req: Request<{id: number}, {}, User>,
+  res: Response<MessageResponse>,
   next: NextFunction
 ) => {
   try {
-    const result = await deleteUser((req.user as User).user_id);
-    if (result) {
-      res.json({
-        message: 'user deleted',
-      });
+    const errors = validationResult(req.body);
+    if (!errors.isEmpty()) {
+      const messages: string = errors
+        .array()
+        .map((error) => `${error.msg}: ${error.param}`)
+        .join(', ');
+      console.log('user_post validation', messages);
+      next(new CustomError(messages, 400));
+      return;
     }
+
+    if (!(req.user as User).user_id && (req.user as User).role !== 'admin') {
+      throw new CustomError('Not user or admin', 400);
+    }
+    const result = await deleteUser((req.user as User).user_id);
+
+    res.json(result);
   } catch (error) {
     next(error);
   }

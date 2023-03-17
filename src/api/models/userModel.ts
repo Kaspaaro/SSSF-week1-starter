@@ -1,10 +1,11 @@
 import {promisePool} from '../../database/db';
 import CustomError from '../../classes/CustomError';
 import {ResultSetHeader, RowDataPacket} from 'mysql2';
-import {GetUser, PostUser, PutUser, User} from '../../interfaces/User';
+import {User} from '../../types/DBTypes';
+import {MessageResponse} from '../../types/MessageTypes';
 
 const getAllUsers = async (): Promise<User[]> => {
-  const [rows] = await promisePool.execute<GetUser[]>(
+  const [rows] = await promisePool.execute<RowDataPacket[] & User[]>(
     `
     SELECT user_id, user_name, email, role 
     FROM sssf_user
@@ -16,8 +17,8 @@ const getAllUsers = async (): Promise<User[]> => {
   return rows;
 };
 
-const getUser = async (userId: string): Promise<User> => {
-  const [rows] = await promisePool.execute<GetUser[]>(
+const getUser = async (userId: number): Promise<User> => {
+  const [rows] = await promisePool.execute<RowDataPacket[] & User[]>(
     `
     SELECT user_id, user_name, email, role 
     FROM sssf_user 
@@ -33,7 +34,22 @@ const getUser = async (userId: string): Promise<User> => {
 
 // TODO: create addUser function
 
-const updateUser = async (data: PutUser, userId: number): Promise<boolean> => {
+const addUser = async (user: User): Promise<MessageResponse> => {
+  const sql = promisePool.format(
+    'INSERT INTO sssf_user (user_name, email, password) VALUES (?, ?, ?);',
+    [user.user_name, user.email, user.password]
+  );
+  const [headers] = await promisePool.execute<ResultSetHeader>(sql);
+  if (headers.affectedRows === 0) {
+    throw new CustomError('User not added', 400);
+  }
+  return {message: 'User added'};
+};
+
+const updateUser = async (
+  data: Partial<User>,
+  userId: number
+): Promise<MessageResponse> => {
   const sql = promisePool.format('UPDATE sssf_user SET ? WHERE user_id = ?;', [
     data,
     userId,
@@ -42,13 +58,24 @@ const updateUser = async (data: PutUser, userId: number): Promise<boolean> => {
   if (headers.affectedRows === 0) {
     throw new CustomError('No users updated', 400);
   }
-  return true;
+  return {message: 'User updated'};
 };
 
 // TODO: create deleteUser function
 
+const deleteUser = async (userId: number) => {
+  const sql = promisePool.format('DELETE FROM sssf_user WHERE user_id = ?;', [
+    userId,
+  ]);
+  const [headers] = await promisePool.execute<ResultSetHeader>(sql);
+  if (headers.affectedRows === 0) {
+    throw new CustomError('No users deleted', 400);
+  }
+  return {message: 'User deleted'};
+};
+
 const getUserLogin = async (email: string): Promise<User> => {
-  const [rows] = await promisePool.execute<GetUser[]>(
+  const [rows] = await promisePool.execute<RowDataPacket[] & User[]>(
     `
     SELECT * FROM sssf_user 
     WHERE email = ?;

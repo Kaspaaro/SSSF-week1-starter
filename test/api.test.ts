@@ -9,10 +9,10 @@ import {
   postUser,
   putUser,
 } from './userFunctions';
-import {User} from '../src/interfaces/User';
 import {closePool} from '../src/database/db';
 import {getNotFound} from './testFunctions';
 import {
+  adminDeleteCat,
   adminPutCat,
   getCat,
   getSingleCat,
@@ -20,11 +20,7 @@ import {
   userDeleteCat,
   userPutCat,
 } from './catFunctions';
-
-interface UserWithToken {
-  user: User;
-  token: string;
-}
+import {User} from '../src/types/DBTypes';
 
 describe('GET /api/v1', () => {
   afterAll(async () => {
@@ -43,10 +39,9 @@ describe('GET /api/v1', () => {
   });
 
   // test create user
-  let token: string = '';
-  let user: UserWithToken;
+  let token = '';
   it('should create a new user', async () => {
-    user = await postUser(app, {
+    await postUser(app, {
       user_name: 'Test User ' + new Date().toLocaleDateString('fi-FI'),
       email: 'test@user.fi',
       password: 'asdfQEWR1234',
@@ -152,6 +147,6 @@ describe('GET /api/v1', () => {
 
   // test delete user's cat as admin
   it('should delete a cat as admin', async () => {
-    await userDeleteCat(app, token, catID);
+    await adminDeleteCat(app, token, catID);
   });
 });

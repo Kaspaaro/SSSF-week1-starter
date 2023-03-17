@@ -10,5 +10,11 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["./*.js", "src/**/*.ts", "test/**/*.ts", "src/types/CustomError.ts"]
+  "include": [
+    "./*.js",
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "src/types/CustomError.ts",
+    "src/types"
+  ]
 }

@@ -2,7 +2,7 @@
 import {NextFunction, Request, Response} from 'express';
 import sharp from 'sharp';
 import {ExifImage} from 'exif';
-import ErrorResponse from './interfaces/ErrorResponse';
+import {ErrorResponse} from './types/MessageTypes';
 import CustomError from './classes/CustomError';
 // import chalk from 'chalk';
 
@@ -14,14 +14,14 @@ const gpsToDecimal = (gpsData: number[], hem: string) => {
   return hem === 'S' || hem === 'W' ? (d *= -1) : d;
 };
 
-const notFound = (req: Request, res: Response, next: NextFunction) => {
+const notFound = (req: Request, _res: Response, next: NextFunction) => {
   const error = new CustomError(`🔍 - Not Found - ${req.originalUrl}`, 404);
   next(error);
 };
 
 const errorHandler = (
   err: CustomError,
-  req: Request,
+  _req: Request,
   res: Response<ErrorResponse>,
   next: NextFunction
 ) => {
@@ -72,7 +72,7 @@ const getCoordinates = (req: Request, res: Response, next: NextFunction) => {
 
 const makeThumbnail = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   try {
