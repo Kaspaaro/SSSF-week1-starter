@@ -32,8 +32,24 @@ const getUser = async (userId: number): Promise<User> => {
   return rows[0];
 };
 
-// TODO: create addUser function
-
+// TODO : create addUser function
+const addUser = async (user: {
+  password: string;
+  user_name: string;
+  email: string;
+}): Promise<void> => {
+  try {
+    await promisePool.execute(
+      `
+      INSERT INTO sssf_user (email, password, other_columns)
+      VALUES (?, ?, ?);
+      `,
+      [user.email, user.password]
+    );
+  } catch (error) {
+    throw new CustomError('Error adding user', 500);
+  }
+};
 const updateUser = async (
   data: Partial<User>,
   userId: number
@@ -49,7 +65,19 @@ const updateUser = async (
   return {message: 'User updated'};
 };
 
-// TODO: create deleteUser function
+const deleteUser = async (userId: string): Promise<void> => {
+  try {
+    await promisePool.execute(
+      `
+      DELETE FROM sssf_user
+      WHERE user_id = ?;
+      `,
+      [userId]
+    );
+  } catch (error) {
+    throw new CustomError('Error deleting user', 500);
+  }
+};
 
 const getUserLogin = async (email: string): Promise<User> => {
   const [rows] = await promisePool.execute<RowDataPacket[] & User[]>(
