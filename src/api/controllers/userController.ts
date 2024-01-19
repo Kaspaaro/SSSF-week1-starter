@@ -53,7 +53,7 @@ const userPost = async (
   next: NextFunction
 ) => {
   try {
-    const errors = validationResult(req);
+    const errors = validationResult(req.body);
     if (!errors.isEmpty()) {
       const messages: string = errors
         .array()
@@ -64,7 +64,7 @@ const userPost = async (
       return;
     }
 
-    const {user_name, email, password} = req.body;
+    const {user_name, email, password, role} = req.body;
 
     if (user_name.length < 3) {
       next(
@@ -87,16 +87,23 @@ const userPost = async (
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser: {password: string; user_name: string; email: string} = {
+    const newUser: {
+      user_id: number;
+      password: string;
+      role: 'user' | 'admin';
+      user_name: string;
+      email: string;
+    } = {
+      user_id: 0,
       user_name,
       email,
       password: hashedPassword,
+      role,
     };
 
-    // TODO: Use addUser function from userModel to add the new user
     await addUser(newUser);
 
-    res.json({message: 'User added successfully'});
+    res.status(200).json({message: 'User added'});
   } catch (error) {
     next(error);
   }
@@ -115,7 +122,7 @@ const userPut = async (
       .array()
       .map((error) => `${error.msg}: ${error.param}`)
       .join(', ');
-    console.log('cat_post validation', messages);
+    console.log('userPut validation', messages);
     next(new CustomError(messages, 400));
     return;
   }
@@ -143,7 +150,7 @@ const userPutCurrent = async (
   res: Response<MessageResponse>,
   next: NextFunction
 ) => {
-  const errors = validationResult(req);
+  const errors = validationResult(req.body);
   if (!errors.isEmpty()) {
     const messages: string = errors
       .array()
@@ -157,14 +164,13 @@ const userPutCurrent = async (
   try {
     if (req.user && req.user.role !== 'admin') {
       throw new CustomError('Admin only', 403);
+    } else {
+      const user = req.body;
+
+      const result = await updateUser(user, (req.user as User).user_id);
+
+      res.json(result);
     }
-
-    const user = req.body;
-
-    // TODO: Use updateUser function from userModel to update the current user
-    const result = await updateUser(user, (req.user as User).user_id);
-
-    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -175,7 +181,7 @@ const userDelete = async (
   res: Response<MessageResponse>,
   next: NextFunction
 ) => {
-  const errors = validationResult(req);
+  const errors = validationResult(new Request(req.params.id));
   if (!errors.isEmpty()) {
     const messages: string = errors
       .array()
@@ -192,11 +198,9 @@ const userDelete = async (
     }
 
     const userId = req.params.id;
-
-    // TODO: Use deleteUser function from userModel to delete the user by ID
     await deleteUser(userId);
 
-    res.json({message: 'User deleted successfully'});
+    res.json({message: 'User deleted'});
   } catch (error) {
     next(error);
   }
@@ -219,7 +223,6 @@ const userDeleteCurrent = async (
       message: 'user deleted',
     });
   } catch (error) {
-    res.status(500).json({message: 'Failed to delete user'});
     next(error);
   }
 };

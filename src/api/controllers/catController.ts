@@ -7,7 +7,7 @@ import {
 } from '../models/catModel';
 import {Request, Response, NextFunction} from 'express';
 import CustomError from '../../classes/CustomError';
-import {validationResult} from 'express-validator';
+import {param, validationResult} from 'express-validator';
 import {MessageResponse} from '../../types/MessageTypes';
 import {Cat, User} from '../../types/DBTypes';
 
@@ -118,7 +118,7 @@ const catDelete = async (
   res: Response<MessageResponse>,
   next: NextFunction
 ) => {
-  const errors = validationResult(req);
+  const errors = validationResult(req.params);
   if (!errors.isEmpty()) {
     const messages: string = errors
       .array()
@@ -130,11 +130,15 @@ const catDelete = async (
   }
 
   try {
-    const id = Number(req.params.id);
+    if (req.user && req.user.role !== 'admin') {
+      throw new CustomError('Unauthorized: Only admins can delete cats', 403);
+    } else {
+      const id = Number(req.params.id);
 
-    const result = await deleteCat(id);
+      const result = await deleteCat(id);
 
-    res.json(result);
+      res.status(200).json(result);
+    }
   } catch (error) {
     next(error);
   }

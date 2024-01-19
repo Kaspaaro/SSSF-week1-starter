@@ -33,19 +33,25 @@ const getUser = async (userId: number): Promise<User> => {
 };
 
 // TODO : create addUser function
-const addUser = async (user: {
+const addUser = async (data: {
+  user_id: number;
   password: string;
   user_name: string;
   email: string;
-}): Promise<void> => {
+  role: string;
+}): Promise<Number> => {
   try {
-    await promisePool.execute(
+    const [headers] = await promisePool.execute<ResultSetHeader>(
       `
-      INSERT INTO sssf_user (email, password, other_columns)
-      VALUES (?, ?, ?);
-      `,
-      [user.email, user.password]
+    INSERT INTO sssf_user (user_name, email, password)
+    VALUES (?, ?, ?);
+    `,
+      [data.user_name, data.email, data.password]
     );
+    if (headers.affectedRows === 0) {
+      throw new CustomError('No users added', 400);
+    }
+    return headers.insertId;
   } catch (error) {
     throw new CustomError('Error adding user', 500);
   }
@@ -67,7 +73,7 @@ const updateUser = async (
 
 const deleteUser = async (userId: string): Promise<void> => {
   try {
-    await promisePool.execute(
+    await promisePool.execute<RowDataPacket[] & User[]>(
       `
       DELETE FROM sssf_user
       WHERE user_id = ?;
