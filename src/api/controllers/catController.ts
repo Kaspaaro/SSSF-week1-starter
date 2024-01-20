@@ -10,6 +10,7 @@ import CustomError from '../../classes/CustomError';
 import {validationResult} from 'express-validator';
 import {MessageResponse} from '../../types/MessageTypes';
 import {Cat, User} from '../../types/DBTypes';
+import {deleteUser} from '../models/userModel';
 
 const catListGet = async (
   _req: Request,
@@ -24,20 +25,25 @@ const catListGet = async (
   }
 };
 
-const catGet = async (req: Request, res: Response<Cat>, next: NextFunction) => {
-  const errors = validationResult(req);
+const catGet = async (
+  req: Request<{id: number}>,
+  res: Response<Cat>,
+  next: NextFunction
+) => {
+  const errors = validationResult(req.body);
   if (!errors.isEmpty()) {
     const messages: string = errors
       .array()
       .map((error) => `${error.msg}: ${error.param}`)
       .join(', ');
-    console.log('cat_get validation', messages);
+    console.log('cat_get validation', messages, req.params.id);
     next(new CustomError(messages, 400));
     return;
   }
 
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
+    console.log('CONST id cat ', id);
     const cat = await getCat(id);
     res.json(cat);
   } catch (error) {
@@ -115,7 +121,7 @@ const catPut = async (
   }
 
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.body.cat_id);
     const cat = req.body;
     const result = await updateCat(cat, id); // Remove the extra arguments
     res.json(result);
@@ -133,7 +139,7 @@ const catDelete = async (
   res: Response<MessageResponse>,
   next: NextFunction
 ) => {
-  const errors = validationResult(req);
+  const errors = validationResult(req.params);
   if (!errors.isEmpty()) {
     const messages: string = errors
       .array()
@@ -145,9 +151,14 @@ const catDelete = async (
   }
 
   try {
-    const id = req.params.id;
-    const result = await deleteCat(id);
-    res.json(result);
+    if ((req.user as User).role !== 'admin') {
+      throw new CustomError('Admin only', 200);
+    }
+    if ((req.user as User).role === 'admin') {
+      const cat = req.body.cat_id;
+      const result = await deleteCat(cat);
+      res.json(result);
+    }
   } catch (error) {
     next(error);
   }

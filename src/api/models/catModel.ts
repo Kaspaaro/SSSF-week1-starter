@@ -54,7 +54,7 @@ const getCat = async (catId: number): Promise<Cat> => {
 // Note that owner is not User in this case. It's just a number (user_id)
 const addCat = async (
   data: Omit<Cat, 'owner'> & {owner: number}
-): Promise<MessageResponse> => {
+): Promise<UploadResponse> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `
     INSERT INTO sssf_cat (cat_name, weight, owner, filename, birthdate, coords) 
@@ -73,7 +73,7 @@ const addCat = async (
   if (headers.affectedRows === 0) {
     throw new CustomError('No cats added', 400);
   }
-  return {message: 'Cat added'};
+  return {message: 'Cat added', id: headers.insertId};
 };
 
 // TODO: create updateCat function to update single cat

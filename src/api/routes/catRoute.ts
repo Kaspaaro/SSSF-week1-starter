@@ -11,7 +11,6 @@ import {body, param} from 'express-validator';
 import passport from '../../passport';
 import {getCoordinates, makeThumbnail} from '../../middlewares';
 
-
 const fileFilter = (
   request: Request,
   file: Express.Multer.File,
