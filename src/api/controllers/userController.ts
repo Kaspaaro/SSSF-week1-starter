@@ -64,7 +64,17 @@ const userPost = async (
 
   try {
     const user = req.body;
-    console.log('WHAT IS WRONG: ' + user.password);
+    if (user.password.length < 5) {
+      throw new CustomError('Password too short', 400);
+    }
+    if (user.user_name.length < 3) {
+      throw new CustomError('Username too short', 400);
+    }
+    const regex = /\S+@\S+\.\S+/;
+    if (!regex.test(user.email)) {
+      throw new CustomError('Invalid email', 400);
+    }
+
     user.password = bcrypt.hashSync(user.password, salt);
 
     const result = await addUser(user);

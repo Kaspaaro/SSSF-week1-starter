@@ -10,7 +10,6 @@ import CustomError from '../../classes/CustomError';
 import {validationResult} from 'express-validator';
 import {MessageResponse} from '../../types/MessageTypes';
 import {Cat, User} from '../../types/DBTypes';
-import {deleteUser} from '../models/userModel';
 
 const catListGet = async (
   _req: Request,
