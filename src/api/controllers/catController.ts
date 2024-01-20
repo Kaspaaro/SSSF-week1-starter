@@ -121,7 +121,7 @@ const catPut = async (
   }
 
   try {
-    const id = Number(req.body.cat_id);
+    const id = Number(req.params.id);
     const cat = req.body;
     const result = await updateCat(cat, id); // Remove the extra arguments
     res.json(result);
@@ -151,14 +151,9 @@ const catDelete = async (
   }
 
   try {
-    if ((req.user as User).role !== 'admin') {
-      throw new CustomError('Admin only', 200);
-    }
-    if ((req.user as User).role === 'admin') {
-      const cat = req.body.cat_id;
-      const result = await deleteCat(cat);
-      res.json(result);
-    }
+    const cat = req.params.id;
+    const result = await deleteCat(cat);
+    res.json(result);
   } catch (error) {
     next(error);
   }

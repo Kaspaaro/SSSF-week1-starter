@@ -105,31 +105,31 @@ describe('GET /api/v1', () => {
     await getSingleCat(app, catID);
   });
 
-  // // modify user's cat
-  // it('should modify a cat', async () => {
-  //   await userPutCat(app, token, catID);
-  // });
-  //
-  // // test delete user's cat
-  // it('should delete a cat', async () => {
-  //   await userDeleteCat(app, token, catID);
-  // });
-  //
-  // // delete GPS image
-  // it('should delete GPS image', async () => {
-  //   await userDeleteCat(app, token, catID2);
-  // });
-  //
-  // // upload another cat for admin tests
-  // it('should upload a cat for admin test', async () => {
-  //   const message = await postCat(app, token, owner, 'cat.jpg');
-  //   catID = message.id!;
-  // });
-  //
-  // // test delete user based on token
-  // it('should delete current user', async () => {
-  //   await deleteUser(app, token);
-  // });
+  // modify user's cat
+  it('should modify a cat', async () => {
+    await userPutCat(app, token, catID);
+  });
+
+  // test delete user's cat
+  it('should delete a cat', async () => {
+    await userDeleteCat(app, token, catID);
+  });
+
+  // delete GPS image
+  it('should delete GPS image', async () => {
+    await userDeleteCat(app, token, catID2);
+  });
+
+  // upload another cat for admin tests
+  it('should upload a cat for admin test', async () => {
+    const message = await postCat(app, token, owner, 'cat.jpg');
+    catID = message.id!;
+  });
+
+  // test delete user based on token
+  it('should delete current user', async () => {
+    await deleteUser(app, token);
+  });
 
   // login as admin
   it('should login as admin', async () => {
@@ -139,14 +139,14 @@ describe('GET /api/v1', () => {
     });
     token = user.token;
   });
-  //
-  // // test modify user's cat as admin
-  // it('should modify a cat as admin', async () => {
-  //   await adminPutCat(app, token, catID);
-  // });
-  //
-  // // test delete user's cat as admin
-  // it('should delete a cat as admin', async () => {
-  //   await adminDeleteCat(app, token, catID);
-  // });
+
+  // test modify user's cat as admin
+  it('should modify a cat as admin', async () => {
+    await adminPutCat(app, token, catID);
+  });
+
+  // test delete user's cat as admin
+  it('should delete a cat as admin', async () => {
+    await adminDeleteCat(app, token, catID);
+  });
 });
