@@ -1,3 +1,7 @@
+ALL TESTS PASS:
+
+![tests](https://github.com/Kaspaaro/W1/assets/114400605/d29742a0-0e6b-489c-9c36-49abf2854bdd)
+
 # SSSF week 1 exercise. Submit to Oma
 
 This REST API is based on the API done in 2nd year course 'Basic Concepts of Web Applications'/'Web ohjelmoinnin perusteet'
